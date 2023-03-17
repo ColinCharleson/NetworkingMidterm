@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 //Lec04
 using System;
@@ -12,6 +13,10 @@ using System.Net.Sockets;
 public class Client : MonoBehaviour
 {
 	public GameObject myCube;
+
+	public InputField ipInput;
+	public static IPAddress ip;
+
 	private static byte[] outBuffer = new byte[512];
 	private static IPEndPoint remoteEP;
 	private static Socket clientSoc;
@@ -22,7 +27,6 @@ public class Client : MonoBehaviour
 	{
 		try
 		{
-			IPAddress ip = IPAddress.Parse("127.0.0.1");
 			//represents a network endpoint as an IP address and a port
 			remoteEP = new IPEndPoint(ip, 8888);
 
@@ -56,7 +60,21 @@ public class Client : MonoBehaviour
 	{
 		myCube = GameObject.Find("Cube");
 		lastPosition = myCube.transform.position;
+		ip = GetIP();
 		StartClient();
 	}
 
-}
+
+	IPAddress GetIP()
+	{
+		if (ipInput.text == null)
+		{
+			return IPAddress.Parse("127.0.0.1");
+		}
+		else
+		{
+
+			return IPAddress.Parse(ipInput.text);
+		}
+	}
+};

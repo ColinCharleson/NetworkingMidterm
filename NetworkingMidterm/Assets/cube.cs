@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class cube : MonoBehaviour
+public class Cube : MonoBehaviour
 {
+    private Rigidbody rb;
     // Start is called before the first frame update
     void Start()
     {
-        
+        rb = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        transform.Translate(Input.GetAxis("Horizontal") * Time.deltaTime * 2f, 
-            0, Input.GetAxis("Vertical") * Time.deltaTime *2f);   
+        transform.Translate(Input.GetAxis("Horizontal") * Time.deltaTime * 4, 0,
+            Input.GetAxis("Vertical") * Time.deltaTime * 4);
     }
 }

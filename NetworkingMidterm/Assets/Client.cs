@@ -12,7 +12,7 @@ using System.Net.Sockets;
 
 public class Client : MonoBehaviour
 {
-	public GameObject myCube;
+	public GameObject myCube, myCube1, myCube2;
 
 	public InputField ipInput;
 	public static IPAddress ip;
@@ -23,10 +23,13 @@ public class Client : MonoBehaviour
 
 	private Vector3 lastPosition;
 
+	private static int clientId;
+
 	public static void StartClient()
 	{
 		try
 		{
+			clientId = UnityEngine.Random.Range(1, 2);
 			//represents a network endpoint as an IP address and a port
 			remoteEP = new IPEndPoint(ip, 8888);
 
@@ -47,9 +50,9 @@ public class Client : MonoBehaviour
 
 		if (lastPosition != pos)
 		{
-			byte[] floatToBytes = new byte[sizeof(float) * 3];
+			byte[] floatToBytes = new byte[(sizeof(float) * 3) + sizeof(int)];
 			Buffer.BlockCopy(new float[] { pos.x, pos.y, pos.z }, 0, floatToBytes, 0, sizeof(float) * 3);
-
+			Buffer.BlockCopy(BitConverter.GetBytes(clientId), 0, floatToBytes, sizeof(float) * 3, sizeof(int));
 			clientSoc.SendTo(floatToBytes, remoteEP);
 			lastPosition = pos;
 		}
@@ -58,8 +61,19 @@ public class Client : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
-		myCube = GameObject.Find("Cube");
-		lastPosition = myCube.transform.position;
+		if (clientId == 0)
+		{
+			myCube = myCube1;
+			Debug.Log("Im Client 1)");
+			lastPosition = myCube.transform.position;
+		}
+
+	    if (clientId == 1)
+		{
+			myCube = myCube2;
+			Debug.Log("Im Client 2)");
+		}
+
 		ip = GetIP();
 		StartClient();
 	}

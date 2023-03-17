@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Cube : MonoBehaviour
+public class Cube1 : MonoBehaviour
 {
     private Rigidbody rb;
     // Start is called before the first frame update

@@ -9,44 +9,25 @@ using System.Net.Sockets;
 
 public class TCPClient : MonoBehaviour
 {
-    public InputField ipInput;
-    public InputField msgInput;
+    public InputField inputField;
+    public Text textObject;
 
-    private static byte[] outBuffer = new byte[512];
-    private static IPEndPoint remoteEP;
-    private static Socket clientSoc;
+    private Socket clientSoc;
 
     // Start is called before the first frame update
     void Start()
     {
-        StartClient();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        // Check for input from user
-        if (Input.GetKeyDown(KeyCode.Return))
-        {
-            SendMsg();
-        }
-    }
-
-    void StartClient()
-    {
         try
         {
-            // Get IP address from input field
-            IPAddress ip = IPAddress.Parse(ipInput.text);
-
-            // Create an endpoint that represents the server's IP and port number
-            remoteEP = new IPEndPoint(ip, 8888);
-
             // Create a new TCP socket and connect to the server
             clientSoc = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clientSoc.Connect(remoteEP);
+            clientSoc.Connect(new IPEndPoint(IPAddress.Loopback, 8889));
 
-            Debug.Log("Connected to server: " + remoteEP.ToString());
+            Debug.Log("Connected to server: " + clientSoc.RemoteEndPoint.ToString());
+
+            // Start receiving messages from the server
+            byte[] inBuffer = new byte[512];
+            clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, ReceiveCallback, inBuffer);
         }
         catch (Exception e)
         {
@@ -54,25 +35,51 @@ public class TCPClient : MonoBehaviour
         }
     }
 
-    void SendMsg()
+    // Callback function that is called when a message is received
+    private void ReceiveCallback(IAsyncResult result)
     {
         try
         {
-            // Convert message to byte array
-            byte[] messageByte = Encoding.ASCII.GetBytes(msgInput.text);
+            
+            // Get the number of bytes received
+            int bytesReceived = clientSoc.EndReceive(result);
 
-            // Send message to the server
-            int bytesSent = clientSoc.Send(messageByte);
+            if (bytesReceived > 0)
+            {
+                // Convert the received bytes to a string and display it on the Text object
+                string messageString = Encoding.ASCII.GetString((byte[])result.AsyncState, 0, bytesReceived);
+                textObject.text = messageString;
 
-            Debug.Log("Sent " + bytesSent.ToString() + " bytes to server.");
+                Debug.Log("Received " + bytesReceived.ToString() + " bytes from server.");
 
-            // Clear the input field
-            msgInput.text = "";
+                // Start receiving the next message
+                byte[] inBuffer = new byte[512];
+                clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, ReceiveCallback, inBuffer);
+            }
+            else
+            {
+                // If the connection was closed by the server, close the socket
+                clientSoc.Close();
+                Debug.Log("Connection closed by server.");
+            }
         }
         catch (Exception e)
         {
             Debug.Log("Exception: " + e.ToString());
         }
+    }
+
+    // Send a message to the server when the "Send" button is clicked
+    public void SendMessage()
+    {
+        string message = inputField.text;
+
+        // Convert the message string to a byte array
+        byte[] messageBytes = Encoding.ASCII.GetBytes(message);
+
+        // Send the message to the server
+        clientSoc.Send(messageBytes);
+        inputField.text = null;
     }
 
     void OnApplicationQuit()

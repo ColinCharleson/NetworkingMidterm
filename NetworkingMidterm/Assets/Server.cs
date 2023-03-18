@@ -3,6 +3,7 @@ using System.Net;
 using System.Text;
 using System.Net.Sockets;
 using UnityEngine;
+using UnityEngine.UI;
 using System.Collections.Generic;
 
 public class Server : MonoBehaviour
@@ -14,6 +15,7 @@ public class Server : MonoBehaviour
 
     private Dictionary<EndPoint, int> clients = new Dictionary<EndPoint, int>();
 
+    public Text ipList;
     public void Start()
     {
         // Get the IP of the current computer
@@ -46,6 +48,7 @@ public class Server : MonoBehaviour
         {
             clients.Add(remoteEP, clients.Count + 1);
             Debug.Log("Client " + clients.Count + " connected from: " + remoteEP);
+            ipList.text += "\n" + remoteEP;
         }
 
         if (clients.ContainsKey(remoteEP))

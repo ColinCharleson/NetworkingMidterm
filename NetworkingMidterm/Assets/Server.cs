@@ -16,6 +16,7 @@ public class Server : MonoBehaviour
     private Dictionary<EndPoint, int> clients = new Dictionary<EndPoint, int>();
 
     public Text ipList;
+
     public void Start()
     {
         // Get the IP of the current computer
@@ -67,6 +68,11 @@ public class Server : MonoBehaviour
                 myCube2.transform.position = new Vector3(cubePos[0], cubePos[1], cubePos[2]);
                 Debug.Log("Received from client 2: " + new Vector3(cubePos[0], cubePos[1], cubePos[2]));
             }
+
+            // Send the cube positions back to the client
+            byte[] cubePosBytes = new byte[(sizeof(float) * 6) + sizeof(int)];
+            Buffer.BlockCopy(new float[] { myCube1.transform.position.x, myCube1.transform.position.y, myCube1.transform.position.z, myCube2.transform.position.x, myCube2.transform.position.y, myCube2.transform.position.z }, 0, cubePosBytes, 0, sizeof(float) * 6);
+            socket.SendTo(cubePosBytes, remoteEP);
         }
     }
 }

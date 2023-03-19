@@ -18,6 +18,7 @@ public class Client : MonoBehaviour
 	public static IPAddress ip;
 
 	private static byte[] outBuffer = new byte[512];
+	private static byte[] inBuffer = new byte[512];
 	private static IPEndPoint remoteEP;
 	private static Socket clientSoc;
 
@@ -29,12 +30,17 @@ public class Client : MonoBehaviour
 	{
 		try
 		{
-			clientId = UnityEngine.Random.Range(1, 2);
 			//represents a network endpoint as an IP address and a port
 			remoteEP = new IPEndPoint(ip, 8888);
 
 			// creates a new socket that can be used to send and recieve messages
 			clientSoc = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+
+			// bind the client socket to any available port
+			clientSoc.Bind(new IPEndPoint(IPAddress.Any, 0));
+
+			// start listening for incoming data
+			clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
 
 		}
 		catch (Exception e)
@@ -42,6 +48,41 @@ public class Client : MonoBehaviour
 			Debug.Log("Exception: " + e.ToString());
 		}
 	}
+
+	private static void ReceiveCallback(IAsyncResult ar)
+	{
+		try
+		{
+			// get the size of the incoming data
+			int receivedSize = clientSoc.EndReceive(ar);
+
+			// extract the position data from the incoming message
+			float[] positionData = new float[3];
+			Buffer.BlockCopy(inBuffer, 0, positionData, 0, sizeof(float) * 3);
+
+			// update the position of the appropriate cube based on the client ID
+			if (clientId == 0)
+			{
+				GameObject cubeToUpdate = GameObject.Find("Player2");
+				Vector3 newPosition = new Vector3(positionData[3], positionData[4], positionData[5]);
+				cubeToUpdate.transform.position = newPosition;
+			}
+			else if (clientId == 1)
+			{
+				GameObject cubeToUpdate = GameObject.Find("Player1");
+				Vector3 newPosition = new Vector3(positionData[0], positionData[1], positionData[2]);
+				cubeToUpdate.transform.position = newPosition;
+			}
+
+			// start listening for more incoming data
+			clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
+		}
+		catch (Exception e)
+		{
+			Debug.Log("Exception: " + e.ToString());
+		}
+	}
+
 
 	// Update is called once per frame
 	void Update()
@@ -61,17 +102,22 @@ public class Client : MonoBehaviour
 	// Start is called before the first frame update
 	void Start()
 	{
+		clientId = UnityEngine.Random.Range(0, 2);
+
 		if (clientId == 0)
 		{
 			myCube = myCube1;
 			Debug.Log("Im Client 1)");
 			lastPosition = myCube.transform.position;
+			myCube2.GetComponent<Cube1>().enabled = false;
 		}
 
-	    if (clientId == 1)
+	    else if (clientId == 1)
 		{
 			myCube = myCube2;
 			Debug.Log("Im Client 2)");
+			lastPosition = myCube.transform.position;
+			myCube1.GetComponent<Cube1>().enabled = false;
 		}
 
 		ip = GetIP();

@@ -64,6 +64,16 @@ public class TCPServer : MonoBehaviour
 
                 Debug.Log("Received " + bytesReceived.ToString() + " bytes from client: " + clientSoc.RemoteEndPoint.ToString());
 
+                // Send the message back to all connected clients
+                byte[] outBuffer = Encoding.ASCII.GetBytes(messageString);
+                foreach (Socket socket in clientSockets)
+                {
+                    if (socket != clientSoc)
+                    {
+                        socket.BeginSend(outBuffer, 0, outBuffer.Length, SocketFlags.None, null, null);
+                    }
+                }
+
                 // Start receiving the next message
                 clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, ReceiveCallback, clientSoc);
             }

@@ -13,6 +13,7 @@ public class TCPClient : MonoBehaviour
     public Text textObject;
 
     private Socket clientSoc;
+    private byte[] inBuffer = new byte[512];
 
     // Start is called before the first frame update
     void Start()
@@ -26,42 +27,7 @@ public class TCPClient : MonoBehaviour
             Debug.Log("Connected to server: " + clientSoc.RemoteEndPoint.ToString());
 
             // Start receiving messages from the server
-            byte[] inBuffer = new byte[512];
-            clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, ReceiveCallback, inBuffer);
-        }
-        catch (Exception e)
-        {
-            Debug.Log("Exception: " + e.ToString());
-        }
-    }
-
-    // Callback function that is called when a message is received
-    private void ReceiveCallback(IAsyncResult result)
-    {
-        try
-        {
-            
-            // Get the number of bytes received
-            int bytesReceived = clientSoc.EndReceive(result);
-
-            if (bytesReceived > 0)
-            {
-                // Convert the received bytes to a string and display it on the Text object
-                string messageString = Encoding.ASCII.GetString((byte[])result.AsyncState, 0, bytesReceived);
-                textObject.text = messageString;
-
-                Debug.Log("Received " + bytesReceived.ToString() + " bytes from server.");
-
-                // Start receiving the next message
-                byte[] inBuffer = new byte[512];
-                clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, ReceiveCallback, inBuffer);
-            }
-            else
-            {
-                // If the connection was closed by the server, close the socket
-                clientSoc.Close();
-                Debug.Log("Connection closed by server.");
-            }
+            clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, ReceiveCallback, clientSoc);
         }
         catch (Exception e)
         {
@@ -79,9 +45,45 @@ public class TCPClient : MonoBehaviour
 
         // Send the message to the server
         clientSoc.Send(messageBytes);
+
+        textObject.text += "You: " + message + "\n";
         inputField.text = null;
     }
 
+    // Callback function that is called when a message is received from the server
+    private void ReceiveCallback(IAsyncResult result)
+    {
+        try
+        {
+            // Get the socket that received the message
+            Socket clientSoc = (Socket)result.AsyncState;
+
+            // Get the number of bytes received
+            int bytesReceived = clientSoc.EndReceive(result);
+
+            if (bytesReceived > 0)
+            {
+                // Convert the received bytes to a string and display it on the Text object
+                string messageString = Encoding.ASCII.GetString(inBuffer, 0, bytesReceived);
+                textObject.text += "Client: " + messageString + "\n";
+
+                Debug.Log("Received " + bytesReceived.ToString() + " bytes from server: " + clientSoc.RemoteEndPoint.ToString());
+
+                // Start receiving the next message
+                clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, ReceiveCallback, clientSoc);
+            }
+            else
+            {
+                // If the connection was closed by the server, close the socket
+                clientSoc.Close();
+                Debug.Log("Connection closed by server: " + clientSoc.RemoteEndPoint.ToString());
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.Log("Exception: " + e.ToString());
+        }
+    }
     void OnApplicationQuit()
     {
         // Close the TCP socket when the application quits

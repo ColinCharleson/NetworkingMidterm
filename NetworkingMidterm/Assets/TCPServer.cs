@@ -20,7 +20,7 @@ public class TCPServer : MonoBehaviour
         {
             // Create a new TCP socket and bind it to the local IP address and port number
             Socket serverSoc = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            serverSoc.Bind(new IPEndPoint(IPAddress.Any, 8889));
+            serverSoc.Bind(new IPEndPoint(IPAddress.Any, 8888));
 
             // Listen for incoming connections
             serverSoc.Listen(2);

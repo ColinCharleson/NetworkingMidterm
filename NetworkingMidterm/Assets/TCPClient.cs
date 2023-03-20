@@ -22,7 +22,7 @@ public class TCPClient : MonoBehaviour
         {
             // Create a new TCP socket and connect to the server
             clientSoc = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            clientSoc.Connect(new IPEndPoint(IPAddress.Loopback, 8889));
+            clientSoc.Connect(new IPEndPoint(IPAddress.Loopback, 8888));
 
             Debug.Log("Connected to server: " + clientSoc.RemoteEndPoint.ToString());
 

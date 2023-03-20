@@ -49,12 +49,12 @@ public class Client : MonoBehaviour
 		}
 	}
 
-	private static void ReceiveCallback(IAsyncResult ar)
+	private static void ReceiveCallback(IAsyncResult result)
 	{
 		try
 		{
 			// get the size of the incoming data
-			int receivedSize = clientSoc.EndReceive(ar);		
+			int receivedSize = clientSoc.EndReceive(result);		
 
 			// start listening for more incoming data
 			clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
@@ -70,9 +70,9 @@ public class Client : MonoBehaviour
 	void Update()
 	{
 
-	// extract the position data from the incoming message
-	float[] positionData = new float[6];
-	Buffer.BlockCopy(inBuffer, 0, positionData, 0, sizeof(float) * 6);
+		// extract the position data from the incoming message
+		float[] positionData = new float[6];
+		Buffer.BlockCopy(inBuffer, 0, positionData, 0, sizeof(float) * 6);
 
 		// update the position of the appropriate cube based on the client ID
 		if (clientId == 0)
@@ -100,32 +100,6 @@ public class Client : MonoBehaviour
 		}
 	}
 
-	// Start is called before the first frame update
-	void Start()
-	{
-		clientId = UnityEngine.Random.Range(0, 2);
-
-		if (clientId == 0)
-		{
-			myCube = myCube1;
-			Debug.Log("Im Client 1)");
-			lastPosition = myCube.transform.position;
-			myCube2.GetComponent<Cube1>().enabled = false;
-		}
-
-	    else if (clientId == 1)
-		{
-			myCube = myCube2;
-			Debug.Log("Im Client 2)");
-			lastPosition = myCube.transform.position;
-			myCube1.GetComponent<Cube1>().enabled = false;
-		}
-
-		ip = GetIP();
-		StartClient();
-	}
-
-
 	IPAddress GetIP()
 	{
 		if (ipInput.text == null)
@@ -137,5 +111,28 @@ public class Client : MonoBehaviour
 
 			return IPAddress.Parse(ipInput.text);
 		}
+	}
+
+	public void JoinClient(int id)
+	{
+		clientId = id;
+
+		if (clientId == 0)
+		{
+			myCube = myCube1;
+			Debug.Log("Im Client 1)");
+			lastPosition = myCube.transform.position;
+			myCube2.GetComponent<Cube1>().enabled = false;
+		}
+		else if (clientId == 1)
+		{
+			myCube = myCube2;
+			Debug.Log("Im Client 2)");
+			lastPosition = myCube.transform.position;
+			myCube1.GetComponent<Cube1>().enabled = false;
+		}
+
+		ip = GetIP();
+		StartClient();
 	}
 };

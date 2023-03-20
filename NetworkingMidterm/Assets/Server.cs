@@ -24,7 +24,7 @@ public class Server : MonoBehaviour
         ip = IPAddress.Parse("127.0.0.1");
 
         socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        socket.Bind(new IPEndPoint(IPAddress.Any, 8888));
+        socket.Bind(new IPEndPoint(IPAddress.Any, 8889));
 
         // Display host name and IP of server
         Debug.Log("Server name: " + hostInfo.HostName + " IP: " + ip);
@@ -61,12 +61,10 @@ public class Server : MonoBehaviour
             if (clientIndex == 0)
             {
                 myCube1.transform.position = new Vector3(cubePos[0], cubePos[1], cubePos[2]);
-                Debug.Log("Received from client 1: " + new Vector3(cubePos[0], cubePos[1], cubePos[2]));
             }
             else if (clientIndex == 1)
             {
                 myCube2.transform.position = new Vector3(cubePos[0], cubePos[1], cubePos[2]);
-                Debug.Log("Received from client 2: " + new Vector3(cubePos[0], cubePos[1], cubePos[2]));
             }
 
             // Send the cube positions back to the client

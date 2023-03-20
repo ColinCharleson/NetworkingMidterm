@@ -31,7 +31,7 @@ public class Client : MonoBehaviour
 		try
 		{
 			//represents a network endpoint as an IP address and a port
-			remoteEP = new IPEndPoint(ip, 8888);
+			remoteEP = new IPEndPoint(ip, 8889);
 
 			// creates a new socket that can be used to send and recieve messages
 			clientSoc = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -54,25 +54,7 @@ public class Client : MonoBehaviour
 		try
 		{
 			// get the size of the incoming data
-			int receivedSize = clientSoc.EndReceive(ar);
-
-			// extract the position data from the incoming message
-			float[] positionData = new float[3];
-			Buffer.BlockCopy(inBuffer, 0, positionData, 0, sizeof(float) * 3);
-
-			// update the position of the appropriate cube based on the client ID
-			if (clientId == 0)
-			{
-				GameObject cubeToUpdate = GameObject.Find("Player2");
-				Vector3 newPosition = new Vector3(positionData[3], positionData[4], positionData[5]);
-				cubeToUpdate.transform.position = newPosition;
-			}
-			else if (clientId == 1)
-			{
-				GameObject cubeToUpdate = GameObject.Find("Player1");
-				Vector3 newPosition = new Vector3(positionData[0], positionData[1], positionData[2]);
-				cubeToUpdate.transform.position = newPosition;
-			}
+			int receivedSize = clientSoc.EndReceive(ar);		
 
 			// start listening for more incoming data
 			clientSoc.BeginReceive(inBuffer, 0, inBuffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), null);
@@ -87,6 +69,25 @@ public class Client : MonoBehaviour
 	// Update is called once per frame
 	void Update()
 	{
+
+	// extract the position data from the incoming message
+	float[] positionData = new float[6];
+	Buffer.BlockCopy(inBuffer, 0, positionData, 0, sizeof(float) * 6);
+
+		// update the position of the appropriate cube based on the client ID
+		if (clientId == 0)
+		{
+			GameObject cubeToUpdate = GameObject.Find("Player2");
+			Vector3 newPosition = new Vector3(positionData[3], positionData[4], positionData[5]);
+			cubeToUpdate.transform.position = newPosition;
+		}
+		else if (clientId == 1)
+		{
+			GameObject cubeToUpdate = GameObject.Find("Player1");
+			Vector3 newPosition = new Vector3(positionData[0], positionData[1], positionData[2]);
+			cubeToUpdate.transform.position = newPosition;
+		}
+
 		Vector3 pos = myCube.transform.position;
 
 		if (lastPosition != pos)
